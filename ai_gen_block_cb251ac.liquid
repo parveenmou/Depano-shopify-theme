@@ -1,0 +1,417 @@
+{% doc %}
+  @prompt
+    generate a full with section with 3 collection in single row shown on screen fit to window and no spacing and padding inside outside allow an option to adjust the spacing btween all the collaction from zero and also from top and botton will be same as between the collection will be a image clickable and a text button option over the piture , add an option to adjust the image height of collection like it should be adapt to image, screen height, or custom adjuster in pixels, add option to adjust the position of buttons
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-collection-grid-{{ ai_gen_id }} {
+    display: block;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  .ai-collection-grid-container-{{ ai_gen_id }} {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: {{ block.settings.spacing }}px;
+    padding: {{ block.settings.spacing }}px 0;
+    width: 100%;
+    margin: 0;
+  }
+
+  .ai-collection-item-{{ ai_gen_id }} {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    {% if block.settings.image_height == 'adapt' %}
+      height: auto;
+    {% elsif block.settings.image_height == 'screen' %}
+      height: 100vh;
+    {% elsif block.settings.image_height == 'custom' %}
+      height: {{ block.settings.custom_height }}px;
+    {% endif %}
+  }
+
+  {% if block.settings.image_height == 'adapt' %}
+    .ai-collection-item-{{ ai_gen_id }} {
+      height: 0;
+      padding-bottom: 100%;
+    }
+  {% endif %}
+
+  .ai-collection-link-{{ ai_gen_id }} {
+    {% if block.settings.image_height == 'adapt' %}
+      position: absolute;
+      top: 0;
+      left: 0;
+    {% else %}
+      position: relative;
+    {% endif %}
+    width: 100%;
+    height: 100%;
+    display: block;
+    text-decoration: none;
+  }
+
+  .ai-collection-image-wrapper-{{ ai_gen_id }} {
+    {% if block.settings.image_height == 'adapt' %}
+      position: absolute;
+      top: 0;
+      left: 0;
+    {% else %}
+      position: relative;
+    {% endif %}
+    width: 100%;
+    height: 100%;
+  }
+
+  .ai-collection-image-{{ ai_gen_id }} {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .ai-collection-placeholder-{{ ai_gen_id }} {
+    width: 100%;
+    height: 100%;
+    background-color: #f4f4f4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ai-collection-placeholder-{{ ai_gen_id }} svg {
+    width: 50%;
+    height: 50%;
+    opacity: 0.3;
+  }
+
+  .ai-collection-button-overlay-{{ ai_gen_id }} {
+    position: absolute;
+    z-index: 2;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    
+    {% if block.settings.button_position == 'center' %}
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    {% elsif block.settings.button_position == 'top-left' %}
+      top: 20px;
+      left: 20px;
+    {% elsif block.settings.button_position == 'top-center' %}
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+    {% elsif block.settings.button_position == 'top-right' %}
+      top: 20px;
+      right: 20px;
+    {% elsif block.settings.button_position == 'bottom-left' %}
+      bottom: 20px;
+      left: 20px;
+    {% elsif block.settings.button_position == 'bottom-center' %}
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+    {% elsif block.settings.button_position == 'bottom-right' %}
+      bottom: 20px;
+      right: 20px;
+    {% endif %}
+  }
+
+  .ai-collection-item-{{ ai_gen_id }}:hover .ai-collection-button-overlay-{{ ai_gen_id }} {
+    opacity: 1;
+  }
+
+  .ai-collection-button-{{ ai_gen_id }} {
+    padding: {{ block.settings.button_padding_vertical }}px {{ block.settings.button_padding_horizontal }}px;
+    background-color: {{ block.settings.button_bg_color }};
+    color: {{ block.settings.button_text_color }};
+    border: none;
+    border-radius: {{ block.settings.button_border_radius }}px;
+    font-size: {{ block.settings.button_font_size }}px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.3s ease;
+    pointer-events: none;
+  }
+
+  .ai-collection-item-{{ ai_gen_id }}:hover .ai-collection-button-{{ ai_gen_id }} {
+    background-color: {{ block.settings.button_hover_bg_color }};
+    color: {{ block.settings.button_hover_text_color }};
+  }
+
+  @media screen and (max-width: 749px) {
+    .ai-collection-grid-container-{{ ai_gen_id }} {
+      grid-template-columns: repeat(1, 1fr);
+    }
+
+    {% if block.settings.image_height == 'screen' %}
+      .ai-collection-item-{{ ai_gen_id }} {
+        height: 50vh;
+      }
+    {% endif %}
+  }
+{% endstyle %}
+
+<collection-grid-{{ ai_gen_id }} class="ai-collection-grid-{{ ai_gen_id }}" {{ block.shopify_attributes }}>
+  <div class="ai-collection-grid-container-{{ ai_gen_id }}">
+    {% for i in (1..3) %}
+      {% liquid
+        assign collection_key = 'collection_' | append: i
+        assign collection = block.settings[collection_key]
+      %}
+      
+      <div class="ai-collection-item-{{ ai_gen_id }}">
+        {% if collection != blank %}
+          <a href="{{ collection.url }}" class="ai-collection-link-{{ ai_gen_id }}">
+            <div class="ai-collection-image-wrapper-{{ ai_gen_id }}">
+              {% if collection.featured_image %}
+                <img
+                  src="{{ collection.featured_image | image_url: width: 1200 }}"
+                  alt="{{ collection.featured_image.alt | escape }}"
+                  class="ai-collection-image-{{ ai_gen_id }}"
+                  loading="lazy"
+                  width="1200"
+                  height="1200"
+                >
+              {% else %}
+                <div class="ai-collection-placeholder-{{ ai_gen_id }}">
+                  {{ 'collection-1' | placeholder_svg_tag }}
+                </div>
+              {% endif %}
+            </div>
+            
+            {% if block.settings.show_button %}
+              <div class="ai-collection-button-overlay-{{ ai_gen_id }}">
+                <span class="ai-collection-button-{{ ai_gen_id }}">
+                  {{ block.settings.button_text }}
+                </span>
+              </div>
+            {% endif %}
+          </a>
+        {% else %}
+          <div class="ai-collection-link-{{ ai_gen_id }}">
+            <div class="ai-collection-image-wrapper-{{ ai_gen_id }}">
+              <div class="ai-collection-placeholder-{{ ai_gen_id }}">
+                {{ 'collection-1' | placeholder_svg_tag }}
+              </div>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+</collection-grid-{{ ai_gen_id }}>
+
+<script>
+  (function() {
+    class CollectionGrid{{ ai_gen_id }} extends HTMLElement {
+      constructor() {
+        super();
+      }
+
+      connectedCallback() {
+      }
+    }
+
+    customElements.define('collection-grid-{{ ai_gen_id }}', CollectionGrid{{ ai_gen_id }});
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Collection grid",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Collections"
+    },
+    {
+      "type": "collection",
+      "id": "collection_1",
+      "label": "Collection 1"
+    },
+    {
+      "type": "collection",
+      "id": "collection_2",
+      "label": "Collection 2"
+    },
+    {
+      "type": "collection",
+      "id": "collection_3",
+      "label": "Collection 3"
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "select",
+      "id": "image_height",
+      "label": "Image height",
+      "options": [
+        {
+          "value": "adapt",
+          "label": "Adapt to image"
+        },
+        {
+          "value": "screen",
+          "label": "Screen height"
+        },
+        {
+          "value": "custom",
+          "label": "Custom"
+        }
+      ],
+      "default": "adapt"
+    },
+    {
+      "type": "range",
+      "id": "custom_height",
+      "label": "Custom height",
+      "min": 200,
+      "max": 1000,
+      "step": 50,
+      "unit": "px",
+      "default": 500
+    },
+    {
+      "type": "range",
+      "id": "spacing",
+      "label": "Spacing",
+      "min": 0,
+      "max": 50,
+      "step": 5,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "header",
+      "content": "Button"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_button",
+      "label": "Show button on hover",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Button text",
+      "default": "Shop now"
+    },
+    {
+      "type": "select",
+      "id": "button_position",
+      "label": "Position",
+      "options": [
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "top-left",
+          "label": "Top left"
+        },
+        {
+          "value": "top-center",
+          "label": "Top center"
+        },
+        {
+          "value": "top-right",
+          "label": "Top right"
+        },
+        {
+          "value": "bottom-left",
+          "label": "Bottom left"
+        },
+        {
+          "value": "bottom-center",
+          "label": "Bottom center"
+        },
+        {
+          "value": "bottom-right",
+          "label": "Bottom right"
+        }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "range",
+      "id": "button_font_size",
+      "label": "Font size",
+      "min": 10,
+      "max": 30,
+      "step": 1,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "button_padding_horizontal",
+      "label": "Horizontal padding",
+      "min": 10,
+      "max": 50,
+      "step": 5,
+      "unit": "px",
+      "default": 30
+    },
+    {
+      "type": "range",
+      "id": "button_padding_vertical",
+      "label": "Vertical padding",
+      "min": 5,
+      "max": 30,
+      "step": 5,
+      "unit": "px",
+      "default": 15
+    },
+    {
+      "type": "range",
+      "id": "button_border_radius",
+      "label": "Border radius",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 6
+    },
+    {
+      "type": "color",
+      "id": "button_bg_color",
+      "label": "Background color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "button_text_color",
+      "label": "Text color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "button_hover_bg_color",
+      "label": "Hover background color",
+      "default": "#dc437c"
+    },
+    {
+      "type": "color",
+      "id": "button_hover_text_color",
+      "label": "Hover text color",
+      "default": "#ffffff"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Collection grid"
+    }
+  ]
+}
+{% endschema %}
